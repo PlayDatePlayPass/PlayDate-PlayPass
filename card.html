@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'"/>
+<meta name="referrer" content="no-referrer"/>
+<meta name="robots" content="noindex,nofollow"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta property="og:title" content="PlayDate Pass"/>
+<meta property="og:description" content="A PlayDate Pass was shared with you. Tap to open."/>
+<meta property="og:image" content="https://playdateplaypass.github.io/PlayDate-PlayPass/og.png"/>
+<meta name="theme-color" content="#ffffff"/>
+<title>PlayDate Pass</title>
+<link rel="stylesheet" href="pp.css"/>
+</head>
+<body>
+<div class="header"><a class="logo" href="index.html"><span>P</span><span>l</span><span>a</span><span>y</span><span>D</span><span>a</span><span>t</span><span>e</span></a></div>
+<div class="content">
+  <div id="card"><p class="notice" style="margin-top:24px">Opening pass…</p></div>
+  <div id="tip" class="notice" style="display:none;margin-top:24px">📱 <strong>Keep this handy tonight:</strong> iPhone: tap Share <strong>⎆</strong> → "Add to Home Screen". Android: tap <strong>⋮</strong> → "Add to Home screen". Or just keep this text message.</div>
+  <div class="app-promo">
+    <div class="app-promo-title">Have kids of your own?</div>
+    <div class="app-promo-body">Make a free pass in a minute. No account, and it stays on your phone.</div>
+    <a class="btn btn-green" id="join" href="app.html#new">Make a Play Pass for your kid</a>
+  </div>
+  <p class="notice" style="margin-top:16px;font-size:13px">🔒 This card was unpacked on your phone from the link itself. Nothing was sent to any server. Anyone with this link can see it, so please don't forward it.</p>
+</div>
+<script src="pp.js"></script>
+<script>
+(async function(){
+  const el=document.getElementById('card');
+  function broken(msg){
+    el.innerHTML='<div class="sec-head"><h2>Hmm, this link looks incomplete.</h2></div><p class="notice warn">'+PP.esc(msg||'Ask the parent to resend it.')+'</p>';
+    document.title='PlayDate Pass';
+  }
+  async function show(){
+    const h=location.hash.slice(1);
+    if(!h){broken('Ask the parent to resend it.');return;}
+    try{
+      const k=await PP.decode(h);
+      el.innerHTML=PP.renderCard(k);
+      document.title=PP.firstName(k.n)+"'s PlayDate Pass";
+      document.getElementById('tip').style.display='block';
+    }catch(e){
+      broken(e.message==='nodecomp'?'This browser is too old to open the pass. Try opening the link in Safari or Chrome, or ask the parent to resend it.':'Ask the parent to resend it.');
+    }
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body>
+</html>

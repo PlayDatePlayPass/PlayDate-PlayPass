@@ -2,83 +2,82 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'"/>
+<meta name="referrer" content="no-referrer"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta property="og:title" content="PlayDate Pass"/>
+<meta property="og:description" content="Share your child's info for safe, stress-free playdates"/>
+<meta property="og:image" content="https://playdateplaypass.github.io/PlayDate-PlayPass/og.png"/>
 <title>PlayDate Pass</title>
-<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="pp.css"/>
 <style>
-:root{--red:#E8272A;--blue:#1B6FE8;--green:#1DB954;--yellow:#F5C400;--black:#111111;--gray:#6B6B6B;}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:var(--black);}
+body{display:flex;align-items:center;justify-content:center;padding:20px;}
 .container{max-width:480px;width:100%;text-align:center;}
-.logo{font-family:'Boogaloo',sans-serif;font-size:64px;letter-spacing:2px;line-height:1;margin-bottom:12px;}
-.logo span:nth-child(1){color:var(--red)}.logo span:nth-child(2){color:var(--blue)}.logo span:nth-child(3){color:var(--green)}.logo span:nth-child(4){color:var(--yellow)}.logo span:nth-child(5){color:var(--red)}.logo span:nth-child(6){color:var(--blue)}.logo span:nth-child(7){color:var(--green)}.logo span:nth-child(8){color:var(--yellow)}
-.tagline{font-size:18px;color:var(--gray);margin-bottom:40px;font-weight:500;}
-.btn{display:block;width:100%;padding:20px;border-radius:12px;border:none;font-family:'DM Sans',sans-serif;font-size:20px;font-weight:700;cursor:pointer;text-decoration:none;margin-bottom:16px;transition:transform .15s;}
-.btn:active{transform:scale(.98);}
-.btn-primary{background:var(--green);color:#fff;}
+.container .logo{font-size:64px;margin-bottom:12px;}
+.tagline{font-size:18px;color:var(--gray);margin-bottom:24px;font-weight:500;}
+.big{font-size:20px;padding:20px;}
 .steps{background:#F4F4F4;border-radius:12px;padding:24px;margin-top:32px;text-align:left;}
-.steps-title{font-weight:700;font-size:15px;margin-bottom:16px;text-align:center;color:var(--black);}
+.steps-title{font-weight:700;font-size:15px;margin-bottom:16px;text-align:center;}
 .step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
 .step:last-child{margin-bottom:0;}
 .step-num{width:24px;height:24px;border-radius:50%;background:var(--black);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
 .step-text{font-size:14px;line-height:1.6;color:var(--gray);}
 .step-text strong{color:var(--black);}
 .footer{margin-top:32px;font-size:13px;color:var(--gray);}
-.footer a{color:var(--blue);text-decoration:none;}
+#secure-link{cursor:pointer;text-decoration:underline;color:var(--blue);background:none;border:0;font:inherit;}
+#secure-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+#secure-overlay .box{background:#fff;border-radius:16px;padding:28px;max-width:420px;width:100%;text-align:left;max-height:90vh;overflow:auto;}
+#secure-overlay h3{font-family:'Boogaloo',sans-serif;font-size:28px;font-weight:400;margin-bottom:12px;}
+#secure-overlay p,#secure-overlay li{font-size:15px;line-height:1.6;color:#555;margin-bottom:8px;}
+#secure-overlay ul{padding-left:18px;}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="logo"><span>P</span><span>l</span><span>a</span><span>y</span><span>D</span><span>a</span><span>t</span><span>e</span></div>
   <p class="tagline">Share your child's info for safe, stress-free playdates</p>
-  
-  <div style="background:#F9F9F9;border-radius:12px;padding:20px;margin:24px 0;text-align:left;">
-    <p style="font-size:15px;line-height:1.7;color:#555;margin:0;">
-      Fill out what feels important to you. 
-      <strong style="color:#111;">Skip anything you want.</strong> There's no perfect pass, just yours. ✨
-    </p>
+  <div style="background:#F9F9F9;border-radius:12px;padding:20px;margin:0 0 24px;text-align:left;">
+    <p style="font-size:15px;line-height:1.7;color:#555;">Fill out what feels important to you. <strong style="color:#111;">Skip anything you want.</strong> There's no perfect pass, just yours. ✨</p>
   </div>
-  
-  <a href="app.html" class="btn btn-primary">Get Started →</a>
-  
+  <a href="app.html" class="btn btn-green big">Get Started →</a>
+
+  <div class="steps">
+    <div class="steps-title">💬 How it works</div>
+    <div class="step"><div class="step-num">1</div><div class="step-text">Tap <strong>Get Started</strong> and fill in your kid's pass once. It's saved on your phone.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text">At drop-off, tap <strong>Share</strong>, untick anything this host doesn't need, and add today's pickup time.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text">Tap <strong>Text it</strong>. The host gets a link in Messages and taps it to see everything on one screen. No app, no login.</div></div>
+  </div>
+
   <div class="steps">
     <div class="steps-title">📱 Add to Home Screen for easy access</div>
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-text">Tap <strong>Get Started</strong> above</div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-text"><strong>iPhone:</strong> Tap the Share button <strong>⎆</strong> → "Add to Home Screen"<br><strong>Android:</strong> Tap menu <strong>⋮</strong> → "Add to Home screen"</div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-text">Open from your home screen like any app!</div>
-    </div>
+    <div class="step"><div class="step-num">1</div><div class="step-text">Tap <strong>Get Started</strong> above</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><strong>iPhone:</strong> Tap the Share button <strong>⎆</strong> → "Add to Home Screen"<br><strong>Android:</strong> Tap menu <strong>⋮</strong> → "Add to Home screen"</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text">Open from your home screen like any app!</div></div>
   </div>
-  
-  <div class="footer">
-    Free • No account needed • Works offline • <span id="secure-link" style="cursor:pointer;text-decoration:underline;color:var(--blue);">Secure</span>
-  </div>
+
+  <div class="footer">Free • No account needed • Works offline • <button id="secure-link">Secure</button></div>
 </div>
 
-<div id="secure-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:20px;" onclick="closeSecureOverlay()">
-  <div style="background:white;border-radius:16px;padding:32px;max-width:400px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,0.2);" onclick="event.stopPropagation()">
-    <h3 style="font-family:'Boogaloo',sans-serif;font-size:28px;margin-bottom:16px;color:#111;">🔒 Your Data is Private</h3>
-    <p style="font-size:16px;line-height:1.7;color:#555;margin:0;">Your child's information is only stored on your phone and the host family's phone. No servers, no accounts, no tracking.</p>
-    <button onclick="closeSecureOverlay()" style="margin-top:24px;width:100%;padding:14px;background:#111;color:white;border:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;">Got it</button>
+<div id="secure-overlay">
+  <div class="box" onclick="event.stopPropagation()">
+    <h3>🔒 Your Data is Private</h3>
+    <p>Your kids' info is saved <strong>only in this phone's browser</strong>. No servers, no accounts, no tracking.</p>
+    <p>When you share, the info you pick is packed into the link itself, after a <strong>#</strong>. Browsers never send that part to any website, so only the host's phone unpacks it.</p>
+    <ul>
+      <li><strong>Anyone who has the link can read the card.</strong> If the host forwards it, the new reader can see it too.</li>
+      <li>Links never expire and you can't unsend them, so share only what this host needs.</li>
+      <li>Clearing browser data or switching phones deletes your saved kids. Use <strong>Export backup</strong> in the app.</li>
+      <li>The app can't confirm the host opened it.</li>
+    </ul>
+    <button class="btn btn-black" id="close-secure">Got it</button>
   </div>
 </div>
-
 <script>
-document.getElementById('secure-link').addEventListener('click', function() {
-  document.getElementById('secure-overlay').style.display = 'flex';
-});
-
-function closeSecureOverlay() {
-  document.getElementById('secure-overlay').style.display = 'none';
-}
+const ov=document.getElementById('secure-overlay');
+document.getElementById('secure-link').onclick=()=>ov.style.display='flex';
+ov.onclick=document.getElementById('close-secure').onclick=()=>ov.style.display='none';
 </script>
 </body>
 </html>
