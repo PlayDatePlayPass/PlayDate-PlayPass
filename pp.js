@@ -64,25 +64,65 @@ const b64u={
 };
 async function pipe(bytes,stream){const r=new Blob([bytes]).stream().pipeThrough(stream);return new Uint8Array(await new Response(r).arrayBuffer());}
 PP.canCompress=typeof CompressionStream!=='undefined';
+/* v2 fragments carry a 2-char FNV checksum after the version char, so a cut-off link is caught.
+   v1 (legacy, still decoded): 'z'+b64u(deflate-raw(JSON)) or 'j'+b64u(JSON).
+   v2 (current): positional fields joined by \x1f, empties dropped from the tail.
+     '2'+b64u(utf8)                          -> uncompressed
+     '3'+b64u(deflate-raw with preset DICT2) -> compressed (fflate, self-hosted)
+   Encoder picks whichever is shorter. DICT2 is frozen: changing it needs a new version char. */
+const SEP='\x1f';
+const ORDER=['d','n','a','al','ao','as','md','dt','do','lk','c1n','c1p','pk','pt','nt','ph','st','sl','tv','sf','bt','sn','so','c2n','c2p','sx','drn','drp'];
+const DICT2=new TextEncoder().encode('Grandma Grandpa Aunt Uncle Nanny Mom Dad Dr. allergic to nuts, no dairy, gluten free, dairy free, inhaler for asthma, EpiPen in backpack, call 911 and me right away. Benadryl if hives. Scared of dogs. Likes pizza, pasta, chicken nuggets, fruit, hates vegetables, mushrooms, spicy food. Bluey, Paw Patrol, Disney movies, G-rated, PG, any. Bedwetting, wears a pull-up. Comfort toy, night-light. Loves Minecraft, Lego, drawing. Please no candy or soda. ');
+const EPOCH=Date.UTC(2020,0,1);
+const toDays=d=>{const m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(d||'');return m?Math.round((Date.UTC(+m[1],m[2]-1,+m[3])-EPOCH)/864e5).toString(36):'';};
+const fromDays=s=>{if(!s)return'';const t=new Date(EPOCH+parseInt(s,36)*864e5);return`${t.getUTCFullYear()}-${String(t.getUTCMonth()+1).padStart(2,'0')}-${String(t.getUTCDate()).padStart(2,'0')}`;};
+const toMin=t=>{const m=/^(\d\d):(\d\d)$/.exec(t||'');return m?(m[1]*60+ +m[2]).toString(36):'';};
+const fromMin=s=>{if(!s)return'';const n=parseInt(s,36);return`${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;};
+const clean=v=>String(v==null?'':v).replace(/[\x00-\x09\x0b-\x1f]/g,' ').trim();
+PP.pack=function(o){
+  const f={d:toDays(o.d),n:o.n,a:o.a,al:o.al,ao:o.ao,as:o.as,md:o.md,dt:o.dt,do:o.do,lk:o.lk,
+    c1n:o.c1&&o.c1[0],c1p:o.c1&&PP.digits(o.c1[1]),pk:o.pk,pt:toMin(o.pt),nt:o.nt,ph:o.ph,st:o.st,
+    sl:o.sl==null||o.sl===''?'':String(o.sl),tv:o.tv,sf:o.sf,bt:toMin(o.bt),sn:o.sn,so:o.so,
+    c2n:o.c2&&o.c2[0],c2p:o.c2&&PP.digits(o.c2[1]),sx:o.sx,drn:o.dr&&o.dr[0],drp:o.dr&&PP.digits(o.dr[1])};
+  const arr=ORDER.map(k=>clean(f[k]));while(arr.length&&!arr[arr.length-1])arr.pop();
+  return arr.join(SEP);
+};
+const fmtP=d=>{if(!d)return'';const x=d.replace(/^\+?1(?=\d{10}$)/,'');return/^\d{10}$/.test(x)?`(${x.slice(0,3)}) ${x.slice(3,6)}-${x.slice(6)}`:d;};
+PP.unpack=function(str){
+  const a=str.split(SEP),g={};ORDER.forEach((k,i)=>g[k]=a[i]||'');
+  const o={v:1,n:g.n,d:fromDays(g.d)};
+  ['a','al','ao','as','md','dt','do','lk','pk','nt','ph','st','tv','sf','sn','so','sx'].forEach(k=>{if(g[k])o[k]=g[k];});
+  if(g.pt)o.pt=fromMin(g.pt);if(g.bt)o.bt=fromMin(g.bt);if(g.sl!=='')o.sl=+g.sl;
+  [['c1','c1n','c1p'],['c2','c2n','c2p'],['dr','drn','drp']].forEach(([k,n,p])=>{if(g[n]||g[p])o[k]=[g[n],fmtP(g[p])];});
+  return o;
+};
+const hash=b=>{let h=0x811c9dc5;for(const x of b){h^=x;h=Math.imul(h,16777619)>>>0;}return(h%1296).toString(36).padStart(2,'0');};
 PP.encode=async function(obj){
-  const json=new TextEncoder().encode(JSON.stringify(obj));
-  if(PP.canCompress){try{return 'z'+b64u.enc(await pipe(json,new CompressionStream('deflate-raw')));}catch(e){}}
-  return 'j'+b64u.enc(json);
+  const raw=new TextEncoder().encode(PP.pack(obj)),h=hash(raw);
+  let best='2'+h+b64u.enc(raw);
+  if(window.fflate){try{const z='3'+h+b64u.enc(fflate.deflateSync(raw,{level:9,dictionary:DICT2}));if(z.length<best.length)best=z;}catch(e){}}
+  return best;
 };
 PP.decode=async function(frag){
   frag=String(frag||'').replace(/^#/,'').trim();
   try{frag=decodeURIComponent(frag);}catch(e){}
-  if(frag.length<4)throw new Error('empty');
-  const kind=frag[0],body=b64u.dec(frag.slice(1));
-  let bytes;
+  if(frag.length<3)throw new Error('empty');
+  const kind=frag[0],v2=kind==='2'||kind==='3',body=b64u.dec(frag.slice(v2?3:1));
+  let bytes,obj;
   if(kind==='z'){
     if(typeof DecompressionStream==='undefined')throw new Error('nodecomp');
     bytes=await pipe(body,new DecompressionStream('deflate-raw'));
-  }else if(kind==='j')bytes=body;else throw new Error('kind');
-  const obj=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+  }else if(kind==='j'||kind==='2')bytes=body;
+  else if(kind==='3'){if(!window.fflate)throw new Error('nodecomp');bytes=fflate.inflateSync(body,{dictionary:DICT2});}
+  else throw new Error('kind');
+  if(v2&&hash(bytes)!==frag.slice(1,3))throw new Error('checksum');
+  const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+  if(kind==='z'||kind==='j')obj=JSON.parse(text);else obj=PP.unpack(text);
   if(!obj||typeof obj!=='object'||obj.v!==1||typeof obj.n!=='string'||!obj.n.trim())throw new Error('shape');
   return obj;
 };
+PP.shareBase=()=>new URL('./',location.href).href;
+PP.introLine=n=>`${PP.firstName(n)}'s Play Pass 👇`;
 
 /* ---- card renderer (used by card.html and the Share preview) ---- */
 const DOTS=['#E8272A','#1B6FE8','#1DB954','#F5C400'];

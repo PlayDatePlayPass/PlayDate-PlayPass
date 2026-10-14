@@ -11,6 +11,8 @@
 <meta property="og:description" content="Share your child's info for safe, stress-free playdates"/>
 <meta property="og:image" content="https://playdateplaypass.github.io/PlayDate-PlayPass/og.png"/>
 <title>PlayDate Pass</title>
+<script>/* a shared pass link is ...PlayDate-PlayPass/#<data>; show it with the card view (fragment never leaves the phone) */
+if(location.hash.length>3)location.replace('card.html'+location.hash);</script>
 <link rel="stylesheet" href="pp.css"/>
 <style>
 body{display:flex;align-items:center;justify-content:center;padding:20px;}

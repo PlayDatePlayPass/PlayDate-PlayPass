@@ -161,8 +161,10 @@ function share(id){
   ${groups.map(g=>`<div class="group-title" style="font-size:20px">${e(g)}</div>`+filled.filter(f=>f.group===g).map(f=>`<label class="check-row"><input type="checkbox" data-f="${f.id}" ${sel[f.id]?'checked':''}/><div><div class="k">${e(f.label)}${f.def?'':'<span class="tag">🔒 off by default</span>'}</div><div class="vv">${e(f.show(k))}</div></div></label>`).join('')).join('')}
   ${filled.some(f=>f.id==='al')?'':'<div class="notice warn" style="margin-top:14px">No allergies entered, so the card will say <strong>"Allergies: not provided"</strong>. <a href="#edit/'+k.id+'">Add them</a></div>'}
   <div id="len" class="len"></div><div id="lenmsg"></div>
+  <div class="field-label" style="margin-top:14px">Message preview</div><div class="linkbox" id="msgprev" style="font-size:14px;color:var(--black);white-space:pre-wrap;max-height:none"></div>
   <button class="btn btn-green" id="text">💬 Text it</button>
   <button class="btn btn-black" id="copy">🔗 Copy link</button>
+  <div class="hint" style="margin-top:6px">Copies just the link, so you can paste it into any chat.</div>
   <button class="btn" id="prev">👀 Preview card</button>
   <div id="preview" style="display:none;border:2px solid var(--black);border-radius:16px;padding:0 16px 16px;margin-top:12px"></div>
   <div class="notice" style="margin-top:20px;font-size:14px"><strong>Before you send:</strong> anyone who has this link can read the card, even if the host forwards it. It never expires, stays in their texts and can be screenshotted. You can't unsend it, and the app can't tell if the host opened it. Share only what this host needs.</div>
@@ -176,13 +178,13 @@ function share(id){
   }
   async function regen(){
     const my=busy={};const p=payload();const frag=await PP.encode(p);if(busy!==my)return;
-    link=new URL('card.html',location.href).href.split('#')[0]+'#'+frag;
+    link=PP.shareBase()+'#'+frag;
     const n=link.length,L=$('#len'),M=$('#lenmsg');
     L.textContent=`Link length: ${n} characters`+(n<=800?' ✓':'');
     $('#text').disabled=$('#copy').disabled=n>2000;
     M.innerHTML=n>2000?'<div class="notice bad">This link is too long to text reliably. Untick some fields or shorten long notes.</div>':n>1500?'<div class="notice warn">Long notes make the link long, so try trimming.</div>':'';
     if($('#preview').style.display==='block')$('#preview').innerHTML=PP.renderCard(p);
-    window.__lastLink=link;
+    window.__lastLink=link;$('#msgprev').textContent=PP.introLine(k.n)+'\n'+link;
   }
   view.addEventListener('change',ev=>{const c=ev.target;if(c.dataset&&c.dataset.f){sel[c.dataset.f]=c.checked;regen();}});
   view.querySelector('[data-radio="pk"]').addEventListener('click',ev=>{const b=ev.target.closest('.radio-item');if(!b)return;st.pk=st.pk===b.dataset.c?'':b.dataset.c;
@@ -191,9 +193,10 @@ function share(id){
   $('#pt').addEventListener('input',ev=>{st.pt=ev.target.value;regen();});
   $('#copy').onclick=async()=>{await regen();PP.toast(await PP.copy(link)?'Link copied ✓':'Press and hold the link to copy');if(!$('#rawlink')){const d=document.createElement('div');d.id='rawlink';d.className='linkbox';$('#copy').after(d);}$('#rawlink').textContent=link;};
   $('#text').onclick=async()=>{
-    await regen();const msg=`Here's ${PP.firstName(k.n)}'s PlayDate Pass for today 🎈 ${link}`;
-    if(navigator.share){try{await navigator.share({text:msg});return;}catch(err){if(err&&err.name==='AbortError')return;}}
-    location.href=(PP.isIOS()?'sms:&body=':'sms:?body=')+encodeURIComponent(msg);
+    await regen();const intro=PP.introLine(k.n);
+    // Web Share: intro as text, link as url (no duplicate link). Fallback: sms: with intro on its own line.
+    if(navigator.share){try{await navigator.share({text:intro,url:link});return;}catch(err){if(err&&err.name==='AbortError')return;}}
+    const sms=(PP.isIOS()?'sms:&body=':'sms:?body=')+encodeURIComponent(intro+'\n'+link);window.__lastSms=sms;if(!window.__ppNoNav)location.href=sms;
     setTimeout(()=>PP.toast('No Messages app? Use Copy link'),1500);
   };
   $('#prev').onclick=()=>{const p=$('#preview');const show=p.style.display!=='block';p.style.display=show?'block':'none';$('#prev').textContent=show?'Hide preview':'👀 Preview card';if(show)p.innerHTML=PP.renderCard(payload());};
